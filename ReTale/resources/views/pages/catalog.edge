@@ -1,0 +1,39 @@
+@layout.preapp()
+@set('title', 'ReTale')
+
+  @slot('main')
+    <section class="catalog">
+      <h2>Catalog</h2>
+      <p>The complete collection of preloved books at ReTale.</p>
+      <br>
+      <div id="catalog-grid" class="catalog-grid"></div>
+
+     <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const catalog = JSON.parse(localStorage.getItem('catalog')) || [];
+        const visibleBooks = catalog.filter(book => book.visible);
+        const grid = document.getElementById('catalog-grid');
+
+        if (visibleBooks.length === 0) {
+          grid.innerHTML = '<p>No books found in catalog.</p>';
+          return;
+        }
+
+        // Rrender books to grid
+        grid.innerHTML = visibleBooks.map(book => `
+          <div class="book-card" id="book-${book.id}">
+            <img src="${book.img}" alt="${book.title}">
+            <h3>${book.title}</h3>
+            <p>${book.author}</p>
+            <span>$${book.price}</span>
+            <div class="book-actions">
+              <button class="add-cart">Add to Cart</button>
+            </div>
+          </div>
+        `).join('');
+      });
+    </script>
+
+    </section>
+  @endslot
+@end

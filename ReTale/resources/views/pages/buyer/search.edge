@@ -1,0 +1,28 @@
+@layout.app()
+
+@set('title', 'Search Results')
+
+    @slot('main')
+    <section class="search-results">
+    <h2>Search results for: "{{ query }}"</h2>
+
+        @if(results.length === 0)
+            <p>No books found.</p>
+        @else
+            <div class="books">
+            @each(book in results)
+                <div class="book-card">
+                <img src="{{ book.img }}" alt="{{ book.title }}">
+                <h3>{{ book.title }}</h3>
+                <p>{{ book.author }}</p>
+                <span>${{ book.price }}</span>
+                <div class="book-actions">
+                    <button class="add-cart">Add to Cart</button>
+                </div>
+                </div>
+            @endeach
+            </div>
+        @endif
+        </section>
+    @endslot
+@end

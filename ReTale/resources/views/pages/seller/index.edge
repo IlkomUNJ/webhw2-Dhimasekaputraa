@@ -1,0 +1,103 @@
+@layout.postapp()
+@set('title', 'ReTale')
+
+  @slot('main')
+    <!-- Hero -->
+    <section class="hero">
+    <div class="hero-content">
+      <!-- Searchbar -->
+      <div class="search-container">
+        <form action="/seller/search" method="GET">
+          <input type="text" name="q" id="SearchInput" placeholder="Search books..." class="search-box" required/>
+          <button type="submit" class="search-btn">Search</button>
+        </form>
+      </div>
+
+      <img src="/resources/assets/logo/Relogo.png" alt="logo" class="hero-img">
+
+      <div class="hero-text">
+        <h1>Same old stories, new readers</h1>
+        <p>
+          ReTale is a place where preloved books find their new homes.
+          At affordable prices, every reader can relive old stories with a fresh experience.
+        </p>
+      </div>
+    </div>
+  </section>
+
+    <!-- New Arrival -->
+    <section>
+      <h2>New Arrival!</h2>
+      <p>Discover the newest books in our store.</p>
+      <br>
+      <div id="new-arrival" class="books"></div>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', renderNewArrival);
+        window.addEventListener('catalogUpdated', renderNewArrival);
+
+        function renderNewArrival() {
+          const catalog = JSON.parse(localStorage.getItem('catalog')) || [];
+          const visibleBooks = catalog.filter(book => book.visible);
+          const latestBooks = visibleBooks.slice(-6).reverse();
+          const newArrivalContainer = document.getElementById('new-arrival');
+
+          if (!newArrivalContainer) return;
+
+          if (latestBooks.length === 0) {
+            newArrivalContainer.innerHTML = '<p>No books available yet.</p>';
+            return;
+          }
+
+          newArrivalContainer.innerHTML = latestBooks.map(book => `
+            <div class="book-card">
+              <img src="${book.img}" alt="${book.title}">
+              <h3>${book.title}</h3>
+              <p>${book.author}</p>
+              <span>$${book.price}</span>
+            </div>
+          `).join('');
+        }
+      </script>
+    </section>
+
+    <!-- Best Seller -->
+    <section>
+      <h2>Best Seller</h2>
+      <p>The top must-read on every reader's list.</p>
+      <br>
+      <div id="best-seller" class="books"></div>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', renderBestSeller);
+        window.addEventListener('catalogUpdated', renderBestSeller);
+
+        function renderBestSeller() {
+          const catalog = JSON.parse(localStorage.getItem('catalog')) || [];
+          const visibleBooks = catalog.filter(book => book.visible);
+          
+          const topBooks = visibleBooks.slice(0, 6);
+
+          const bestSellerContainer = document.getElementById('best-seller');
+          if (!bestSellerContainer) return;
+
+          if (topBooks.length === 0) {
+            bestSellerContainer.innerHTML = '<p>No books available yet.</p>';
+            return;
+          }
+
+          bestSellerContainer.innerHTML = topBooks.map(book => `
+            <div class="book-card">
+              <img src="${book.img}" alt="${book.title}">
+              <h3>${book.title}</h3>
+              <p>${book.author}</p>
+              <span>$${book.price}</span>
+            </div>
+          `).join('');
+        }
+      </script>
+    </section>
+
+
+  @endslot
+@end

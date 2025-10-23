@@ -1,0 +1,118 @@
+@layout.preapp()
+@set('title', 'Sign In')
+
+@slot('main')
+        <div class="login-container">
+        <h2>Sign In</h2>
+        <div class="tab-container">
+            <button id="buyerTab" class="active">Buyer</button>
+            <button id="sellerTab">Seller</button>
+        </div>
+
+        <form id="buyerForm" class="form active">
+            <input type="text" placeholder="Buyer Username">
+            <input type="password" placeholder="Password">
+            <button type="submit">Login as Buyer</button>
+        </form>
+
+        <form id="sellerForm" class="form">
+            <input type="text" placeholder="Seller Username">
+            <input type="password" placeholder="Password">
+            <button type="submit">Login as Seller</button>
+        </form>
+        </div>
+
+        <style>
+            .login-container {
+            width: 350px;
+            margin: 100px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            .tab-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            }
+            .tab-container button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: #eee;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 8px;
+            }
+            .tab-container button.active {
+            background: #2e2e2e;
+            color: #fff;
+            }
+            .form {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            }
+            .form.active {
+            display: flex;
+            }
+            input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            }
+            button[type="submit"] {
+            padding: 10px;
+            background: #2e2e2e;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            }
+            button[type="submit"]:hover {
+            background: #2e2e2e;
+            }
+        </style>
+
+        <script>
+            const buyerTab = document.getElementById('buyerTab');
+            const sellerTab = document.getElementById('sellerTab');
+            const buyerForm = document.getElementById('buyerForm');
+            const sellerForm = document.getElementById('sellerForm');
+
+
+            buyerTab.addEventListener('click', () => {
+            buyerTab.classList.add('active');
+            sellerTab.classList.remove('active');
+            buyerForm.classList.add('active');
+            sellerForm.classList.remove('active');
+            });
+
+            sellerTab.addEventListener('click', () => {
+            sellerTab.classList.add('active');
+            buyerTab.classList.remove('active');
+            sellerForm.classList.add('active');
+            buyerForm.classList.remove('active');
+            });
+
+            // ---- LOGIN HANDLER ----
+            buyerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            localStorage.setItem('userRole', 'buyer');
+            alert('Logged in as Buyer');
+            window.location.href = '/home/buyer'; 
+            });
+
+            sellerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            localStorage.setItem('userRole', 'seller');
+            alert('Logged in as Seller');
+            window.location.href = '/home/seller';
+            });
+        </script>
+
+ @endslot
+@end

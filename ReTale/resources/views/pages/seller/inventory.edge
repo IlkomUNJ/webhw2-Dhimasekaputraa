@@ -1,0 +1,236 @@
+@layout.postapp()
+@set('title', 'ReTale')
+
+  @slot('main')
+      <!-- Inventory -->
+      <section class="manage">
+        <div class="container">
+          <h2>Manage Books</h2>
+
+          <table class="manage-table">
+            <thead>
+              <tr>
+                <th>Book</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Price</th>
+                <th>Visible</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="manage-body">
+              {{-- filled by js --}}
+            </tbody>
+          </table>
+
+          <h3>Add New Book</h3>
+          <form id="add-form">
+            <input type="text" id="new-title" placeholder="Book Title" required>
+            <input type="text" id="new-author" placeholder="Author" required>
+            <input type="number" id="new-price" placeholder="Price ($)" required step="0.01">
+            <input type="file" id="new-img" accept="image/*" required>
+            <button type="submit" class="btn add-book">Add Book</button>
+          </form>
+        </div>
+      </section>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          // ==== Default Books ====
+          const defaultBooks = [
+            { id: 1, title: 'Norwegian Wood', author: 'Murakami', price: 10, img: '/resources/assets/book_cover/norwegian_wood.jpg', visible: true },
+            { id: 2, title: 'The Great Gatsby', author: 'F. Scott', price: 8, img: '/resources/assets/book_cover/great_gatsby.jpg', visible: true },
+            { id: 3, title: 'Brother Karamazov', author: 'Dostoevsky', price: 12, img: '/resources/assets/book_cover/brother_karamazov.jpg', visible: true },
+            { id: 4, title: 'Moby Dick', author: 'Herman Melville', price: 7, img: '/resources/assets/book_cover/moby_dick.jpeg', visible: true },
+            { id: 5, title: 'War and Peace', author: 'Leo Tolstoy', price: 13, img: '/resources/assets/book_cover/war_and_peace.jpg', visible: true },
+            { id: 6, title: 'Spoke Thus Zarathustra', author: 'Friedrich Nietzsche', price: 10, img: '/resources/assets/book_cover/spoke_thus_zarathustra.jpg', visible: true },
+            { id: 7, title: '1984', author: 'George Orwell', price: 11, img: '/resources/assets/book_cover/1984.jpeg', visible: true },
+            { id: 8, title: 'Kafka on the Shore', author: 'Murakami', price: 9, img: '/resources/assets/book_cover/kafka_on_the_shore.jpg', visible: true },
+            { id: 9, title: 'Crime and Punishment', author: 'Dostoevsky', price: 13, img: '/resources/assets/book_cover/crime_and_punishment.jpeg', visible: true },
+            { id: 10, title: 'Metamorphosis', author: 'Franz Kafka', price: 13, img: '/resources/assets/book_cover/metamorphosis.jpeg', visible: true },
+            { id: 11, title: 'Meditations', author: 'Marcus Aurelius', price: 7, img: '/resources/assets/book_cover/meditations.jpeg', visible: true },
+            { id: 12, title: 'No Longer Human', author: 'Osamu Dazai', price: 6, img: '/resources/assets/book_cover/no_longer_human.jpg', visible: true }
+          ];
+
+          // Initialize catalog only if missing
+          if (!localStorage.getItem('catalog')) {
+            localStorage.setItem('catalog', JSON.stringify(defaultBooks));
+          }
+
+          // single source of truth: catalog
+          let books = JSON.parse(localStorage.getItem('catalog')) || [];
+
+          const tbody = document.getElementById('manage-body'); 
+          const addForm = document.getElementById('add-form');  
+
+          // Toast
+          const toast = document.createElement('div');
+          toast.id = 'toast';
+          Object.assign(toast.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            background: '#2e2e2e',
+            color: '#fff',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            opacity: '0',
+            transition: 'opacity 0.25s ease',
+            zIndex: 9999,
+            fontSize: '14px'
+          });
+          document.body.appendChild(toast);
+          let toastTimer = null;
+          function showToast(msg) {
+            clearTimeout(toastTimer);
+            toast.textContent = msg;
+            toast.style.opacity = '1';
+            toastTimer = setTimeout(() => toast.style.opacity = '0', 1400);
+          }
+
+          // update localStorage and notify other pages
+          function persistCatalog(reRender = true) {
+            localStorage.setItem('catalog', JSON.stringify(books));
+            // notify other open tabs/pages 
+            window.dispatchEvent(new Event('catalogUpdated'));
+            if (reRender) renderTable();
+          }
+
+          // render inventory table
+          function renderTable() {
+            if (!tbody) return;
+            if (!books || books.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#ccc">No books in inventory.</td></tr>';
+              return;
+            }
+
+            tbody.innerHTML = books.map((b, i) => `
+              <tr data-index="${i}">
+                <td><img src="${b.img}" alt="${b.title}" style="width:60px;height:90px;object-fit:cover;border-radius:6px"></td>
+                <td><input type="text" class="title-input" data-index="${i}" value="${escapeHtml(b.title)}"></td>
+                <td><input type="text" class="author-input" data-index="${i}" value="${escapeHtml(b.author)}"></td>
+                <td><input type="number" class="price-input" data-index="${i}" value="${b.price}"></td>
+                <td style="text-align:center"><input type="checkbox" class="visible-checkbox" data-index="${i}" ${b.visible ? 'checked' : ''}></td>
+                <td><button class="btn delete-btn" data-index="${i}">Delete</button></td>
+              </tr>
+            `).join('');
+
+            attachRowListeners();
+          }
+
+          // attach listeners after render
+          function attachRowListeners() {
+            // delete
+            tbody.querySelectorAll('.delete-btn').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const idx = Number(btn.dataset.index);
+                const t = books[idx].title;
+                if (confirm(`Hapus "${t}"?`)) {
+                  books.splice(idx, 1);
+                  persistCatalog();
+                  showToast(`"${t}" removed`);
+                }
+              });
+            });
+
+            // title
+            tbody.querySelectorAll('.title-input').forEach(input => {
+              input.addEventListener('input', () => {
+                const idx = Number(input.dataset.index);
+                books[idx].title = input.value;
+                persistCatalog(false);
+                showToast('Title updated');
+              });
+            });
+
+            // author
+            tbody.querySelectorAll('.author-input').forEach(input => {
+              input.addEventListener('input', () => {
+                const idx = Number(input.dataset.index);
+                books[idx].author = input.value;
+                persistCatalog(false);
+                showToast('Author updated');
+              });
+            });
+
+            // price
+            tbody.querySelectorAll('.price-input').forEach(input => {
+              input.addEventListener('input', () => {
+                const idx = Number(input.dataset.index);
+                books[idx].price = parseFloat(input.value) || 0;
+                persistCatalog(false);
+                showToast('Price updated');
+              });
+            });
+
+            // visible
+            tbody.querySelectorAll('.visible-checkbox').forEach(input => {
+              input.addEventListener('change', () => {
+                const idx = Number(input.dataset.index);
+                books[idx].visible = input.checked;
+                persistCatalog(false);
+                showToast(input.checked ? 'Book visible' : 'Book hidden');
+              });
+            });
+          }
+
+          // escape to protect quotes in value attribute
+          function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+              .replace(/&/g, '&amp;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&#39;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;');
+          }
+
+          // Add new book
+          if (addForm) {
+            addForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+              const title = addForm.querySelector('#new-title').value.trim();
+              const author = addForm.querySelector('#new-author').value.trim();
+              const price = parseFloat(addForm.querySelector('#new-price').value) || 0;
+              const file = addForm.querySelector('#new-img').files[0];
+
+              if (!title || !author || !file) {
+                alert('Fill title, author, price and choose an image.');
+                return;
+              }
+
+              const reader = new FileReader();
+              reader.onload = () => {
+                const newBook = {
+                  id: Date.now(),
+                  title,
+                  author,
+                  price,
+                  img: reader.result,
+                  visible: true
+                };
+                books.push(newBook);
+                persistCatalog();
+                addForm.reset();
+                showToast(`"${title}" added`);
+              };
+              reader.readAsDataURL(file);
+            });
+          }
+
+          // react to storage events from other tabs (keep inventory in sync)
+          window.addEventListener('storage', (ev) => {
+            if (ev.key === 'catalog') {
+              books = JSON.parse(ev.newValue) || [];
+              renderTable();
+            }
+          });
+
+          // initial render
+          renderTable();
+        });
+      </script>
+
+
+  @endslot
+@end

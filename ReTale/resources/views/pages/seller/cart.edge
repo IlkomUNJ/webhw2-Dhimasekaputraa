@@ -1,0 +1,80 @@
+@layout.postapp()
+@set('title', 'Book Inventory')
+
+@slot('main')
+<section class="cart">
+  <div class="container">
+    <h2>Buyer Wishlist</h2>
+    <table class="cart-table">
+      <thead>
+        <tr>
+          <th>Book</th>
+          <th>Title</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody id="cart-body">
+        <!-- filled by JS -->
+      </tbody>
+    </table>
+
+    <div class="cart-summary">
+      <h3 id="cart-total">Total: $0.00</h3>
+    </div>
+  </div>
+</section>
+
+<script>
+  // --- Helper functions ---
+  function getCart() {
+    return JSON.parse(localStorage.getItem('cart')) || []
+  }
+
+  function updateCartCount() {
+    const cart = getCart()
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
+    const indicator = document.getElementById('cart-count')
+    if (indicator) {
+      indicator.textContent = totalItems > 0 ? totalItems : ''
+      indicator.classList.toggle('active', totalItems > 0)
+    }
+  }
+
+  function renderCart() {
+    const cart = getCart()
+    const tbody = document.getElementById('cart-body')
+    const totalElem = document.getElementById('cart-total')
+
+    tbody.innerHTML = ''
+    let total = 0
+
+    if (cart.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No books available</td></tr>`
+      totalElem.textContent = 'Total: $0.00'
+      return
+    }
+
+    cart.forEach((item) => {
+      total += item.subtotal
+      const row = `
+        <tr>
+          <td><img src="${item.img}" alt="${item.title}" style="width:60px; border-radius:6px;"></td>
+          <td>${item.title}</td>
+          <td>$${item.price.toFixed(2)}</td>
+          <td>${item.quantity}</td>
+          <td>$${item.subtotal.toFixed(2)}</td>
+        </tr>
+      `
+      tbody.insertAdjacentHTML('beforeend', row)
+    })
+
+    totalElem.textContent = `Total: $${total.toFixed(2)}`
+    updateCartCount()
+  }
+
+  document.addEventListener('DOMContentLoaded', renderCart)
+</script>
+@endslot
+@end

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  @if ($slots.meta)
+    {{{ await $slots.meta() }}}
+  @endif
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReTale - Home</title>
+  {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
+  @stack('dumper')
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="/resources/js/cart.js"></script>
+  <link rel="stylesheet" href="/resources/css/style.css">
+</head>
+<body>
+  {{-- Header --}}
+  @if ($slots.header)
+  {{{ await $slots.header() }}}
+  @else
+     <header>
+    <nav class="navbar">
+      <div class="logo">
+        <img src="/resources/assets/logo/retale_logo.png" alt="ReTale Logo" class="logo-img">
+      </div>
+        <ul class="nav-links">
+          <li><a href="/home/buyer">Home</a></li>
+          <li><a href="/buyer/catalog">Catalog</a></li>
+          <li><a href="/buyer/about">About</a></li>
+          <li><a href="/buyer/cart" class="cart-link">Cart</a><span id="cart-count" class="cart-badge"></span></li>
+          {{-- <li><a href="/login">Sign In</a></li> --}}
+          <li><a href="/">Logout</a></li>
+        </ul>
+    </nav>
+  </header>
+  @endif
+  
+  {{-- @!selection('content') --}}
+  {{{ await $slots.main() }}}
+
+  {{-- footer --}}
+  @if($slots.footer)
+  {{{ await $slots.footer() }}}
+  @else
+    <footer>
+      <div>© 2025 ReTale</div>
+      <div>
+        <a href="/buyer/about">About us</a> | 
+        <a href="/buyer/catalog">Catalog</a> | 
+        <a href="/buyer/contact">Contact</a>
+      </div>
+  </footer>
+  @endif
+
+  <script>
+    // Add to cart global function
+    function addToCartHandler(book) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || []
+
+      // Check all books
+      const existing = cart.find(item => item.id === book.id)
+      if (existing) {
+        existing.quantity += 1
+        existing.subtotal = existing.quantity * existing.price
+      } else {
+        book.quantity = 1
+        book.subtotal = book.price
+        cart.push(book)
+      }
+
+      localStorage.setItem('cart', JSON.stringify(cart))
+      const indicator = document.getElementById('cart-count')
+      if (indicator) {
+        const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0)
+        indicator.textContent = totalItems
+        indicator.classList.add('active')
+      }
+
+      // notification
+      alert(`"${book.title}" added to cart!`)
+    }
+  </script>
+
+</body>
+</html>
